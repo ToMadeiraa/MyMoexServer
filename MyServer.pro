@@ -1,4 +1,4 @@
-QT = core network xml
+QT = core network xml sql
 
 CONFIG += c++17 cmdline
 
@@ -7,6 +7,8 @@ CONFIG += c++17 cmdline
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        ConnectionHandler.cpp \
+        DataPacket.cpp \
         MyServer.cpp \
         XmlUrlParser.cpp \
         main.cpp
@@ -17,5 +19,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    ConnectionHandler.h \
+    DataPacket.h \
     MyServer.h \
     XmlUrlParser.h

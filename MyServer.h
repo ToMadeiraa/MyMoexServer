@@ -8,6 +8,21 @@
 #include <QVector>
 #include <QDebug>
 
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QTimer>
+
+#include <QStandardPaths>
+#include <QDir>
+
+#include "XmlUrlParser.h"
+#include "ConnectionHandler.h"
+
+#define LIMIT 1;
+#define LIMITstr "1"
+
+
 class Server : public QTcpServer
 {
     Q_OBJECT
@@ -15,32 +30,24 @@ public:
     explicit Server(QObject *parent = nullptr);
     void startServer();
 
+    XmlUrlParser parser;
+    QHash<QString, long long int> LastTRADENOs;
+
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
 
 private:
     QVector<QThread*> threads;
-};
-
-class ConnectionHandler : public QObject
-{
-    Q_OBJECT
-public:
-    explicit ConnectionHandler(qintptr socketDescriptor, QObject *parent = nullptr);
-
-signals:
-    void finished();
+    QSqlDatabase db;
+    QSqlQuery* requestQuery;
+    QTimer *timerSendRequest;
+    long long int LastTRADENO;
 
 public slots:
-    void process();
+    void makeParserRequests();
+    void insertInDB_slot();
 
-private slots:
-    void readyRead();
-    void disconnected();
-
-private:
-    QTcpSocket *socket;
-    qintptr socketDescriptor;
 };
+
 
 #endif // MYSERVER_H
