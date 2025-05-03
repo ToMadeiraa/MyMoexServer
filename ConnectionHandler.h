@@ -12,14 +12,12 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QTimer>
-
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
+#include <QDateTime>
 
 #include <QDataStream>
+#include <QHash>
 
-#include "DataPacket.h"
+#define DATA_LIMIT 10
 
 class ConnectionHandler : public QObject
 {
@@ -27,9 +25,13 @@ class ConnectionHandler : public QObject
 public:
     explicit ConnectionHandler(qintptr socketDescriptor, QObject *parent = nullptr);
     QTimer *timerSendData;
-    DataPacket data;
     QSqlQuery* requestQuery;
     QSqlDatabase db;
+
+    QHash<QString, ushort> SecID_Numbers; //расшифровка secid по id
+    QHash<ushort, long long int> clientLastTradeno;
+
+
 signals:
     void finished();
 

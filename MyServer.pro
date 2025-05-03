@@ -8,7 +8,6 @@ CONFIG += c++17 cmdline
 
 SOURCES += \
         ConnectionHandler.cpp \
-        DataPacket.cpp \
         MyServer.cpp \
         XmlUrlParser.cpp \
         main.cpp
@@ -20,6 +19,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     ConnectionHandler.h \
-    DataPacket.h \
     MyServer.h \
     XmlUrlParser.h

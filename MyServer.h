@@ -19,8 +19,8 @@
 #include "XmlUrlParser.h"
 #include "ConnectionHandler.h"
 
-#define LIMIT 1;
-#define LIMITstr "1"
+#define LIMIT 10;
+#define LIMITstr "10"
 
 
 class Server : public QTcpServer
@@ -32,6 +32,7 @@ public:
 
     XmlUrlParser parser;
     QHash<QString, long long int> LastTRADENOs;
+    QHash<QString, ushort> SecID_Numbers;
 
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
@@ -41,7 +42,6 @@ private:
     QSqlDatabase db;
     QSqlQuery* requestQuery;
     QTimer *timerSendRequest;
-    long long int LastTRADENO;
 
 public slots:
     void makeParserRequests();

@@ -14,6 +14,9 @@ void Server::startServer()
         qDebug() << "Server could not start!";
     }
 
+    //заполняем таблицу secid/ushort, чтобы было дешевле отправлять по сети
+    SecID_Numbers["AFLT"] = 1;
+
     //подключились к БД
     db = QSqlDatabase::addDatabase("QSQLITE");
     QString homeDir = QDir::homePath();
@@ -26,18 +29,19 @@ void Server::startServer()
         qDebug() << "ПОДКЛЮЧЕНО";
     }
 
-
     requestQuery = new QSqlQuery(db);
     //создали таблицу, если не существует
-    requestQuery->exec("CREATE TABLE IF NOT EXISTS moex ( TRADENO BIGINT UNIQUE, SECID VARCHAR(4), PRICE FLOAT, QUANTITY INTEGER, SYSTIME DATETIME, BUYSELL CHARACTER(1) );");
+    requestQuery->exec("CREATE TABLE IF NOT EXISTS moex ( TRADENO BIGINT UNIQUE, SECID SMALLINT, PRICE FLOAT, QUANTITY INTEGER, SYSTIME DATETIME, BUYSELL BOOLEAN );");
     requestQuery->first();
 
-    //получили последний номер сделки
-    requestQuery->exec("SELECT MAX(TRADENO) FROM moex;");
-    requestQuery->first();
-    LastTRADENO = requestQuery->value(0).toLongLong();
-    LastTRADENOs["AFLT"] = LastTRADENO;
-    qDebug() << "LAST TRADENO = " << LastTRADENO;
+    //получили последние номера сделки
+    for (auto i = SecID_Numbers.cbegin(), end = SecID_Numbers.cend(); i != end; i++){
+        QString req = "SELECT MAX(TRADENO) FROM moex WHERE SECID = " + QString::number(i.value());
+        requestQuery->exec(req);
+        requestQuery->first();
+        LastTRADENOs[i.key()] = requestQuery->value(0).toLongLong();
+        qDebug() << "LAST TRADENO = " << LastTRADENOs[i.key()];
+    }
 
     //каждую секунду делаем парсинг
     timerSendRequest = new QTimer;

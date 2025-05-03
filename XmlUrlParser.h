@@ -6,15 +6,6 @@
 #include <QXmlStreamReader>
 #include <QHash>
 
-struct Security {
-    quint64 Tradeno;
-    QString SecID;
-    double Price;
-    quint32 Quantity;
-    QDateTime Systime;
-    QChar BuySell;
-};
-
 
 class XmlUrlParser : public QObject {
     Q_OBJECT
@@ -24,6 +15,7 @@ public:
     QString bigInsertString;
     QString LastSecurity_tmp;
     long long int LastTradeno_tmp;
+    QHash<QString, ushort> SecID_Numbers;
 
 private slots:
     void replyFinished(QNetworkReply *reply);

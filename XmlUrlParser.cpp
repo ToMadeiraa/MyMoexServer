@@ -2,8 +2,8 @@
 
 XmlUrlParser::XmlUrlParser(QObject *parent) : QObject(parent) {
     manager = new QNetworkAccessManager(this);
-    connect(manager, &QNetworkAccessManager::finished,
-            this, &XmlUrlParser::replyFinished);
+    connect(manager, &QNetworkAccessManager::finished, this, &XmlUrlParser::replyFinished);
+    SecID_Numbers["AFLT"] = 1;
 }
 
 void XmlUrlParser::fetchXml(const QUrl &url) {
@@ -18,8 +18,6 @@ void XmlUrlParser::replyFinished(QNetworkReply *reply) {
     //     return;
     // }
 
-
-    Security sec_tmp;
     bigInsertString = "INSERT INTO moex (TRADENO, SECID, PRICE, QUANTITY, SYSTIME, BUYSELL) VALUES ";
 
     QXmlStreamReader xml(reply->readAll());
@@ -41,14 +39,15 @@ void XmlUrlParser::replyFinished(QNetworkReply *reply) {
             int QUANTITY_tmp = xml.attributes().at(5).value().toInt();
             QString SYSTIME_tmp = xml.attributes().at(9).value().toString();
             QString BUYSELL_tmp = xml.attributes().at(10).value().toString();
+            char BUYSELL_tmp_bool = (BUYSELL_tmp == "B") ? '1' : '0';
 
             QString valuesInsertString = "(";
-            valuesInsertString.append(QString::number(TRADENO_tmp)); valuesInsertString.append(", '");
-            valuesInsertString.append(SECID_tmp); valuesInsertString.append("', ");
+            valuesInsertString.append(QString::number(TRADENO_tmp)); valuesInsertString.append(", ");
+            valuesInsertString.append(QString::number(SecID_Numbers[SECID_tmp])); valuesInsertString.append(", ");
             valuesInsertString.append(QString::number(PRICE_tmp)); valuesInsertString.append(", ");
             valuesInsertString.append(QString::number(QUANTITY_tmp)); valuesInsertString.append(", '");
-            valuesInsertString.append(SYSTIME_tmp); valuesInsertString.append("', '");
-            valuesInsertString.append(BUYSELL_tmp); valuesInsertString.append("'),");
+            valuesInsertString.append(SYSTIME_tmp); valuesInsertString.append("', ");
+            valuesInsertString.append(BUYSELL_tmp_bool); valuesInsertString.append("),");
             bigInsertString.append(valuesInsertString);
             LastTradeno_tmp = TRADENO_tmp;
             LastSecurity_tmp = SECID_tmp;
@@ -60,5 +59,4 @@ void XmlUrlParser::replyFinished(QNetworkReply *reply) {
 
     emit (insertInDB_signal());
     reply->deleteLater();
-    //qDebug() << "=====================================================";
 }
