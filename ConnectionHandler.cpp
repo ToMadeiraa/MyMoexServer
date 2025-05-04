@@ -52,7 +52,6 @@ void ConnectionHandler::disconnected()
 
 void ConnectionHandler::sendData_slot()
 {
-
     QByteArray ba;
     QDataStream ds(&ba, QIODevice::WriteOnly);
 

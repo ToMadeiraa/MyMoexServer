@@ -12,11 +12,11 @@ void XmlUrlParser::fetchXml(const QUrl &url) {
 }
 
 void XmlUrlParser::replyFinished(QNetworkReply *reply) {
-    // if (reply->error() != QNetworkReply::NoError) {
-    //     qDebug() << "Error:" << reply->errorString();
-    //     reply->deleteLater();
-    //     return;
-    // }
+    if (reply->error() != QNetworkReply::NoError) {
+        qDebug() << "Error:" << reply->errorString();
+        reply->deleteLater();
+        return;
+    }
 
     bigInsertString = "INSERT INTO moex (TRADENO, SECID, PRICE, QUANTITY, SYSTIME, BUYSELL) VALUES ";
 

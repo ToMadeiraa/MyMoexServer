@@ -21,3 +21,5 @@ HEADERS += \
     ConnectionHandler.h \
     MyServer.h \
     XmlUrlParser.h
+
+DISTFILES +=
