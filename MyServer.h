@@ -22,7 +22,6 @@
 #define LIMIT 10;
 #define LIMITstr "10"
 
-
 class Server : public QTcpServer
 {
     Q_OBJECT

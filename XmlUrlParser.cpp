@@ -1,6 +1,7 @@
 #include "XmlUrlParser.h"
 
-XmlUrlParser::XmlUrlParser(QObject *parent) : QObject(parent) {
+XmlUrlParser::XmlUrlParser(QObject *parent) : QObject(parent)
+{
     manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, &XmlUrlParser::replyFinished);
     SecID_Numbers["AFLT"] = 1;

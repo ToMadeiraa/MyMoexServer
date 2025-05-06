@@ -1,8 +1,7 @@
 #include "ConnectionHandler.h"
 
-
-ConnectionHandler::ConnectionHandler(qintptr socketDescriptor, QObject *parent)
-    : QObject(parent), socketDescriptor(socketDescriptor)
+ConnectionHandler::ConnectionHandler(qintptr socketDescriptor_, QObject *parent)
+    : QObject(parent), socketDescriptor(socketDescriptor_)
 {
     SecID_Numbers["AFLT"] = 1;
 }
@@ -26,8 +25,6 @@ void ConnectionHandler::process()
     connect(socket, &QTcpSocket::readyRead, this, &ConnectionHandler::readyRead);
     connect(socket, &QTcpSocket::disconnected, this, &ConnectionHandler::disconnected);
 }
-
-
 
 void ConnectionHandler::readyRead()
 {
@@ -57,7 +54,7 @@ void ConnectionHandler::sendData_slot()
 
     ushort secid_tmp = 0;
     long long int tradeno_tmp = 0;
-    long long int tradeno_tmp_for_hash;
+    long long int tradeno_tmp_for_hash = 0;
     float price_tmp = 0;
     int quantity_tmp = 0;
     QString systime_tmp;
@@ -89,13 +86,6 @@ void ConnectionHandler::sendData_slot()
         //пока не дойдем до последней записи
         while (requestQuery->next()) {
 
-            // qDebug() << requestQuery->value(0).toLongLong();
-            // qDebug() << requestQuery->value(1).toString();
-            // qDebug() << requestQuery->value(2).toDouble();
-            // qDebug() << requestQuery->value(3).toInt();
-            // qDebug() << requestQuery->value(4).toString();
-            // qDebug() << requestQuery->value(5).toString();
-
             tradeno_tmp = requestQuery->value(0).toLongLong(); tradeno_tmp_for_hash = tradeno_tmp;
             secid_tmp = requestQuery->value(1).toUInt();
             price_tmp = requestQuery->value(2).toDouble();
@@ -109,10 +99,9 @@ void ConnectionHandler::sendData_slot()
             tradeno_tmp = (tradeno_tmp << 1);
             tradeno_tmp = tradeno_tmp | buysell_tmp;
 
-            ds << tradeno_tmp; tradeno_tmp = 0;
+            ds << tradeno_tmp;
             ds << price_tmp;
             ds << quantity_tmp;
-
 
             QDateTime dt_now = QDateTime::fromString(systime_tmp, "yyyy-MM-dd hh:mm:ss");
             uint secondsFrom2000 = dt_2000.secsTo(dt_now);

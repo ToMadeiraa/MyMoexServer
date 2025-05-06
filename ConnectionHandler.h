@@ -31,7 +31,6 @@ public:
     QHash<QString, ushort> SecID_Numbers; //расшифровка secid по id
     QHash<ushort, long long int> clientLastTradeno;
 
-
 signals:
     void finished();
 
