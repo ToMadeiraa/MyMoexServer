@@ -27,13 +27,6 @@ void XmlUrlParser::replyFinished(QNetworkReply *reply) {
 
         if (xml.name().toString() == "row" && xml.attributes().size() == 15) {
 
-            // qDebug() << xml.attributes().at(0).value(); //TRADENO
-            // qDebug() << xml.attributes().at(3).value(); //SECID
-            // qDebug() << xml.attributes().at(4).value(); //PRICE
-            // qDebug() << xml.attributes().at(5).value(); //QUANTITY
-            // qDebug() << xml.attributes().at(9).value(); //SYSTIME
-            // qDebug() << xml.attributes().at(10).value(); //BUYSELL
-
             long long int TRADENO_tmp = xml.attributes().at(0).value().toLongLong();
             QString SECID_tmp = xml.attributes().at(3).value().toString();
             double PRICE_tmp = xml.attributes().at(4).value().toDouble();

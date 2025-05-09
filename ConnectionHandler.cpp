@@ -20,7 +20,7 @@ void ConnectionHandler::process()
 
     timerSendData = new QTimer;
     connect(timerSendData, SIGNAL(timeout()), this, SLOT(sendData_slot()));
-    timerSendData->start(1000);
+    timerSendData->start(500);
 
     connect(socket, &QTcpSocket::readyRead, this, &ConnectionHandler::readyRead);
     connect(socket, &QTcpSocket::disconnected, this, &ConnectionHandler::disconnected);
@@ -69,7 +69,6 @@ void ConnectionHandler::sendData_slot()
         secid_tmp = i.key();
         tradeno_tmp = i.value();
 
-
         qDebug() << "SECID = " << secid_tmp;
         qDebug() << "TRADENO = " << tradeno_tmp;
 
@@ -77,8 +76,6 @@ void ConnectionHandler::sendData_slot()
         req.append(" WHERE SECID = "); req.append(QString::number(secid_tmp));
         req.append(" AND TRADENO > "); req.append(QString::number(tradeno_tmp));
         req.append(" LIMIT " + QString::number(DATA_LIMIT) + ";");
-
-        qDebug() << req;
 
         requestQuery->exec(req);
         requestQuery->first();
@@ -106,7 +103,6 @@ void ConnectionHandler::sendData_slot()
             QDateTime dt_now = QDateTime::fromString(systime_tmp, "yyyy-MM-dd hh:mm:ss");
             uint secondsFrom2000 = dt_2000.secsTo(dt_now);
             ds << secondsFrom2000;
-
         }
 
         socket->write(ba);
