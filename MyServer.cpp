@@ -15,7 +15,7 @@ void Server::startServer()
     }
 
     //заполняем таблицу secid/ushort, чтобы было дешевле отправлять по сети
-    SecID_Numbers["AFLT"] = 1;
+    SecID_Numbers["GAZP"] = 1;
 
     //подключились к БД
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -31,6 +31,7 @@ void Server::startServer()
 
     requestQuery = new QSqlQuery(db);
     //создали таблицу, если не существует
+
     requestQuery->exec("CREATE TABLE IF NOT EXISTS moex ( TRADENO BIGINT UNIQUE, SECID SMALLINT, PRICE FLOAT, QUANTITY INTEGER, SYSTIME DATETIME, BUYSELL BOOLEAN );");
     requestQuery->first();
 
@@ -41,12 +42,13 @@ void Server::startServer()
         requestQuery->first();
         LastTRADENOs[i.key()] = requestQuery->value(0).toLongLong();
         qDebug() << "LAST TRADENO = " << LastTRADENOs[i.key()];
+
     }
 
-    //каждую секунду делаем парсинг
+    //каждую 0.5c делаем парсинг
     timerSendRequest = new QTimer;
     connect(timerSendRequest, SIGNAL(timeout()), this, SLOT(makeParserRequests()));
-    timerSendRequest->start(5000);
+    timerSendRequest->start(500);
 
     //коннектим сигнал вставки хмл в БД
     connect(&parser, SIGNAL(insertInDB_signal()), this, SLOT(insertInDB_slot()));
@@ -59,7 +61,8 @@ void Server::incomingConnection(qintptr socketDescriptor)
     QThread *thread = new QThread(this);
     ConnectionHandler *handler = new ConnectionHandler(socketDescriptor);
     handler->requestQuery = this->requestQuery;
-    handler->db = this->db;
+    //handler->db = &this->db;
+    handler->mtx = &this->mtx;
     handler->moveToThread(thread);
 
     connect(thread, &QThread::started, handler, &ConnectionHandler::process);
@@ -78,7 +81,7 @@ void Server::makeParserRequests()
         QUrl_str.append("/trades.xml?TRADENO="); QUrl_str.append(QString::number(i.value()+1));
         QUrl_str.append("&limit=");
         QUrl_str.append(LIMITstr);
-        //qDebug() << QUrl_str;
+        qDebug() << QUrl_str;
         parser.fetchXml(QUrl(QUrl_str));
     }
 }
@@ -86,9 +89,11 @@ void Server::makeParserRequests()
 void Server::insertInDB_slot()
 {
     //qDebug() << parser.bigInsertString;
+    mtx.lock();
     requestQuery->exec(parser.bigInsertString);
     requestQuery->first();
     LastTRADENOs[parser.LastSecurity_tmp] = parser.LastTradeno_tmp;
+    mtx.unlock();
 }
 
 

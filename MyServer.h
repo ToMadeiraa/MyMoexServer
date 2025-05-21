@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QThread>
+#include <QMutex>
 #include <QVector>
 #include <QDebug>
 
@@ -19,8 +20,8 @@
 #include "XmlUrlParser.h"
 #include "ConnectionHandler.h"
 
-#define LIMIT 10;
-#define LIMITstr "10"
+#define LIMIT 100;
+#define LIMITstr "100"
 
 class Server : public QTcpServer
 {
@@ -32,6 +33,7 @@ public:
     XmlUrlParser parser;
     QHash<QString, long long int> LastTRADENOs;
     QHash<QString, ushort> SecID_Numbers;
+    QMutex mtx;
 
 protected:
     void incomingConnection(qintptr socketDescriptor) override;

@@ -5,10 +5,11 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QThread>
+#include <QMutex>
 #include <QVector>
 #include <QDebug>
 
-#include <QSqlDatabase>
+//#include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QTimer>
@@ -25,7 +26,8 @@ public:
     explicit ConnectionHandler(qintptr socketDescriptor, QObject *parent = nullptr);
     QTimer *timerSendData;
     QSqlQuery* requestQuery;
-    QSqlDatabase db;
+    //QSqlDatabase* db;
+    QMutex* mtx;
 
     QHash<QString, ushort> SecID_Numbers; //расшифровка secid по id
     QHash<ushort, long long int> clientLastTradeno;
@@ -35,8 +37,6 @@ signals:
 
 public slots:
     void process();
-
-
 
 private slots:
     void readyRead();

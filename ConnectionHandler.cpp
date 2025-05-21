@@ -3,7 +3,7 @@
 ConnectionHandler::ConnectionHandler(qintptr socketDescriptor_, QObject *parent)
     : QObject(parent), socketDescriptor(socketDescriptor_)
 {
-    SecID_Numbers["AFLT"] = 1;
+    SecID_Numbers["GAZP"] = 1;
 }
 
 void ConnectionHandler::process()
@@ -62,6 +62,8 @@ void ConnectionHandler::sendData_slot()
 
     QDateTime dt_2000; dt_2000.setDate(QDate(2000,1,1)); dt_2000.setTime(QTime(0,0,0));
 
+    mtx->lock();
+
     //получаем из бд 10 записей определенного secid с определенным tradeno
     // и отправляем клиенту, заодно записывая какие последние tradeno мы отправили
     for (auto i = clientLastTradeno.cbegin(), end = clientLastTradeno.cend(); i != end; i++) {
@@ -108,4 +110,6 @@ void ConnectionHandler::sendData_slot()
         socket->write(ba);
         clientLastTradeno[secid_tmp] = tradeno_tmp_for_hash;
     }
+
+    mtx->unlock();
 }

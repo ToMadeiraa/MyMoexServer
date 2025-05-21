@@ -4,7 +4,7 @@ XmlUrlParser::XmlUrlParser(QObject *parent) : QObject(parent)
 {
     manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, &XmlUrlParser::replyFinished);
-    SecID_Numbers["AFLT"] = 1;
+    SecID_Numbers["GAZP"] = 1;
 }
 
 void XmlUrlParser::fetchXml(const QUrl &url) {
