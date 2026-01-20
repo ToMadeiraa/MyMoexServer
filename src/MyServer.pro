@@ -1,5 +1,6 @@
 QT = core network xml sql
 
+
 CONFIG += c++17 cmdline
 
 QMAKE_CXXFLAGS += -Wall -Wextra -Wshadow -Werror -O3 -g

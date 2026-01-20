@@ -8,6 +8,8 @@
 #include <QMutex>
 #include <QVector>
 #include <QDebug>
+#include <QHash>
+#include <QMap>
 
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -20,8 +22,8 @@
 #include "XmlUrlParser.h"
 #include "ConnectionHandler.h"
 
-#define LIMIT 100;
-#define LIMITstr "100"
+#define LIMIT 1000;
+#define LIMITstr "1000"
 
 class Server : public QTcpServer
 {
@@ -32,7 +34,7 @@ public:
 
     XmlUrlParser parser;
     QHash<QString, long long int> LastTRADENOs;
-    QHash<QString, ushort> SecID_Numbers;
+    QMap<QString, ushort> SecID_Numbers;
     QMutex mtx;
 
 protected:
