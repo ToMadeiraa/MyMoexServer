@@ -18,7 +18,7 @@
 #include <QDataStream>
 #include <QHash>
 
-#define DATA_LIMIT 100
+#define DATA_LIMIT 10
 class ConnectionHandler : public QObject
 {
     Q_OBJECT

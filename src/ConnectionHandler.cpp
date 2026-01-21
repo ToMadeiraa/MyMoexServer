@@ -55,9 +55,9 @@ void ConnectionHandler::process()
 
     qDebug() << "Client connected:" << socket->peerAddress().toString() << ":" << socket->peerPort();
 
-    timerSendData = new QTimer;
-    connect(timerSendData, SIGNAL(timeout()), this, SLOT(sendData_slot()));
-    timerSendData->start(500);
+//    timerSendData = new QTimer;
+//    connect(timerSendData, SIGNAL(timeout()), this, SLOT(sendData_slot()));
+//    timerSendData->start(500);
 
     connect(socket, &QTcpSocket::readyRead, this, &ConnectionHandler::readyRead);
     connect(socket, &QTcpSocket::disconnected, this, &ConnectionHandler::disconnected);
@@ -66,6 +66,7 @@ void ConnectionHandler::process()
 void ConnectionHandler::readyRead()
 {
     QByteArray data = socket->readAll();
+
     QDataStream ds(&data, QIODevice::ReadOnly);
     long long int word = 0;
 
@@ -74,7 +75,11 @@ void ConnectionHandler::readyRead()
         ushort secid_tmp = word & 0x3FF; word = word >> 9;
         long long int lastTradeno_tmp = word;
         clientLastTradeno[secid_tmp] = lastTradeno_tmp;
+
+        qDebug() << "SECID = " << secid_tmp << ",   LastTrade = " << lastTradeno_tmp;
     }
+
+    sendData_slot();
 }
 
 void ConnectionHandler::disconnected()
@@ -86,8 +91,7 @@ void ConnectionHandler::disconnected()
 
 void ConnectionHandler::sendData_slot()
 {
-    QByteArray ba;
-    QDataStream ds(&ba, QIODevice::WriteOnly);
+    mtx->lock();
 
     ushort secid_tmp = 0;
     long long int tradeno_tmp = 0;
@@ -99,22 +103,32 @@ void ConnectionHandler::sendData_slot()
 
     QDateTime dt_2000; dt_2000.setDate(QDate(2000,1,1)); dt_2000.setTime(QTime(0,0,0));
 
-    mtx->lock();
-
-    //получаем из бд 10 записей определенного secid с определенным tradeno
+    //получаем из бд 100 записей определенного secid с определенным tradeno
     // и отправляем клиенту, заодно записывая какие последние tradeno мы отправили
-    for (auto i = clientLastTradeno.cbegin(), end = clientLastTradeno.cend(); i != end; i++) {
+    for (auto i = clientLastTradeno.cbegin(), end = clientLastTradeno.cend(); i != end; i++)
+    {
+        QByteArray ba;
+        QDataStream ds(&ba, QIODevice::ReadWrite);
 
         secid_tmp = i.key();
         tradeno_tmp = i.value();
 
-        qDebug() << "SECID = " << secid_tmp;
-        qDebug() << "TRADENO = " << tradeno_tmp;
-
-        QString req = "SELECT TRADENO, SECID, PRICE, QUANTITY, SYSTIME, BUYSELL FROM moex";
-        req.append(" WHERE SECID = "); req.append(QString::number(secid_tmp));
-        req.append(" AND TRADENO > "); req.append(QString::number(tradeno_tmp));
+        QString companyName;
+        for (const auto &key : SecID_Numbers.keys())
+        {
+            if (SecID_Numbers[key] == secid_tmp)
+            {
+                companyName = QString(key) + QString("_server");
+                break;
+            }
+        }
+        QString req = "SELECT TRADENO, PRICE, QUANTITY, SYSTIME, BUYSELL FROM " + companyName;
+        req.append(" WHERE TRADENO > "); req.append(QString::number(tradeno_tmp));
         req.append(" LIMIT " + QString::number(DATA_LIMIT) + ";");
+
+        qDebug() << req;
+        qDebug() << "SECID = " << secid_tmp << "     TRADENO = " << tradeno_tmp;
+        qDebug() << "======================";
 
         requestQuery->exec(req);
         requestQuery->first();
@@ -123,12 +137,10 @@ void ConnectionHandler::sendData_slot()
         while (requestQuery->next()) {
 
             tradeno_tmp = requestQuery->value(0).toLongLong(); tradeno_tmp_for_hash = tradeno_tmp;
-            secid_tmp = requestQuery->value(1).toUInt();
-            price_tmp = requestQuery->value(2).toDouble();
-            quantity_tmp = requestQuery->value(3).toUInt();
-            systime_tmp = requestQuery->value(4).toString();
-            buysell_tmp = requestQuery->value(5).toUInt();
-
+            price_tmp = requestQuery->value(1).toDouble();
+            quantity_tmp = requestQuery->value(2).toUInt();
+            systime_tmp = requestQuery->value(3).toString();
+            buysell_tmp = requestQuery->value(4).toUInt();
 
             tradeno_tmp = (tradeno_tmp << 10);
             tradeno_tmp = tradeno_tmp | secid_tmp;
@@ -148,6 +160,7 @@ void ConnectionHandler::sendData_slot()
         }
 
         socket->write(ba);
+        qDebug() << "WRITE";
         clientLastTradeno[secid_tmp] = tradeno_tmp_for_hash;
     }
 

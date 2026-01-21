@@ -91,7 +91,7 @@ void Server::startServer()
         qDebug() << "Last trade number of " << companyName << " == " << LastTRADENOs[key];
     }
 
-    //каждые 0.5c делаем парсинг
+    //каждые 10c делаем парсинг
     timerSendRequest = new QTimer;
     connect(timerSendRequest, SIGNAL(timeout()), this, SLOT(makeParserRequests()));
     timerSendRequest->start(10000);

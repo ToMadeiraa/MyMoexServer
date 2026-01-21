@@ -6,7 +6,6 @@
 #include <QXmlStreamReader>
 #include <QHash>
 
-
 class XmlUrlParser : public QObject {
     Q_OBJECT
 public:
@@ -15,7 +14,6 @@ public:
     QString bigInsertString;
     QString LastSecurity_tmp;
     long long int LastTradeno_tmp;
-    QHash<QString, ushort> SecID_Numbers;
 
 private slots:
     void replyFinished(QNetworkReply *reply);
