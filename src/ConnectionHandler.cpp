@@ -72,14 +72,17 @@ void ConnectionHandler::readyRead()
 
     while (!ds.atEnd()) {
         ds >> word;
-        ushort secid_tmp = word & 0x3FF; word = word >> 9;
+        ushort secid_tmp = word & 0x3FF; word = word >> 10;
         long long int lastTradeno_tmp = word;
         clientLastTradeno[secid_tmp] = lastTradeno_tmp;
 
         qDebug() << "SECID = " << secid_tmp << ",   LastTrade = " << lastTradeno_tmp;
     }
 
-    sendData_slot();
+//    for (const auto &key : SecID_Numbers.keys())
+//    {
+        sendData_slot();
+//    }
 }
 
 void ConnectionHandler::disconnected()
@@ -103,7 +106,7 @@ void ConnectionHandler::sendData_slot()
 
     QDateTime dt_2000; dt_2000.setDate(QDate(2000,1,1)); dt_2000.setTime(QTime(0,0,0));
 
-    //получаем из бд 100 записей определенного secid с определенным tradeno
+    //получаем из бд DATA_LIMIT записей определенного secid с определенным tradeno
     // и отправляем клиенту, заодно записывая какие последние tradeno мы отправили
     for (auto i = clientLastTradeno.cbegin(), end = clientLastTradeno.cend(); i != end; i++)
     {
@@ -122,46 +125,63 @@ void ConnectionHandler::sendData_slot()
                 break;
             }
         }
-        QString req = "SELECT TRADENO, PRICE, QUANTITY, SYSTIME, BUYSELL FROM " + companyName;
-        req.append(" WHERE TRADENO > "); req.append(QString::number(tradeno_tmp));
-        req.append(" LIMIT " + QString::number(DATA_LIMIT) + ";");
-
-        qDebug() << req;
-        qDebug() << "SECID = " << secid_tmp << "     TRADENO = " << tradeno_tmp;
-        qDebug() << "======================";
-
-        requestQuery->exec(req);
+        QString maxTradeno = "SELECT MAX(TRADENO) FROM " + companyName;
+        requestQuery->exec(maxTradeno);
         requestQuery->first();
+        long long int maxTradeNumber = requestQuery->value(0).toLongLong();
 
-        //пока не дойдем до последней записи
-        while (requestQuery->next()) {
+        uint counter = 0;
+        qDebug() << "START SENDING " << companyName;
+        qDebug() << "==================";
 
-            tradeno_tmp = requestQuery->value(0).toLongLong(); tradeno_tmp_for_hash = tradeno_tmp;
-            price_tmp = requestQuery->value(1).toDouble();
-            quantity_tmp = requestQuery->value(2).toUInt();
-            systime_tmp = requestQuery->value(3).toString();
-            buysell_tmp = requestQuery->value(4).toUInt();
+        while (maxTradeNumber > tradeno_tmp_for_hash)
+        {
+            QString req = "SELECT TRADENO, PRICE, QUANTITY, SYSTIME, BUYSELL FROM " + companyName;
+            req.append(" WHERE TRADENO > "); req.append(QString::number(tradeno_tmp));
+            req.append(" LIMIT " + QString::number(DATA_LIMIT) + ";");
 
-            tradeno_tmp = (tradeno_tmp << 10);
-            tradeno_tmp = tradeno_tmp | secid_tmp;
+            requestQuery->exec(req);
+            requestQuery->first();
 
-            tradeno_tmp = (tradeno_tmp << 1);
-            tradeno_tmp = tradeno_tmp | buysell_tmp;
+            //пока не дойдем до последней записи
+            do
+            {
+                tradeno_tmp = requestQuery->value(0).toLongLong(); tradeno_tmp_for_hash = tradeno_tmp;
+                price_tmp = requestQuery->value(1).toDouble();
+                quantity_tmp = requestQuery->value(2).toUInt();
+                systime_tmp = requestQuery->value(3).toString();
+                buysell_tmp = requestQuery->value(4).toUInt();
 
-            ds << tradeno_tmp;
-            ds << price_tmp;
-            ds << quantity_tmp;
+                //long long int word = tradeno_tmp;
 
+                tradeno_tmp = (tradeno_tmp << 10);
+                tradeno_tmp = tradeno_tmp | secid_tmp;
 
-            QDateTime dt_now = QDateTime::fromString(systime_tmp, "yyyy-MM-ddTHH:mm:ss.zzz");
-            qDebug() << dt_now;
-            uint secondsFrom2000 = dt_2000.secsTo(dt_now);
-            ds << secondsFrom2000;
+                tradeno_tmp = (tradeno_tmp << 1);
+                tradeno_tmp = tradeno_tmp | buysell_tmp;
+
+                ds << tradeno_tmp;
+                ds << price_tmp;
+                ds << quantity_tmp;
+
+                QDateTime dt_now = QDateTime::fromString(systime_tmp, "yyyy-MM-ddTHH:mm:ss.zzz");
+                uint secondsFrom2000 = dt_2000.secsTo(dt_now);
+                ds << secondsFrom2000;
+            } while (requestQuery->next());
+
+            socket->write(ba);
+            socket->flush();
+
+            clientLastTradeno[secid_tmp] = tradeno_tmp_for_hash;
+            qDebug() << "Count of packs = " << ++counter;
+            qDebug() << "Last trade number = " << tradeno_tmp_for_hash;
+
+            QThread::msleep(500);
         }
 
-        socket->write(ba);
-        qDebug() << "WRITE";
-        clientLastTradeno[secid_tmp] = tradeno_tmp_for_hash;
+        //tradeno_tmp_for_hash = tradeno_tmp;
+        //clientLastTradeno[secid_tmp] = tradeno_tmp_for_hash;
+
     }
 
     mtx->unlock();
