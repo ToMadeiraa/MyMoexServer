@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QVector>
 #include <QDebug>
+#include <QtEndian>
 
 //#include <QSqlDatabase>
 #include <QSqlQuery>
@@ -18,7 +19,7 @@
 #include <QDataStream>
 #include <QHash>
 
-#define DATA_LIMIT 1000
+#define DATA_LIMIT 5
 class ConnectionHandler : public QObject
 {
     Q_OBJECT
