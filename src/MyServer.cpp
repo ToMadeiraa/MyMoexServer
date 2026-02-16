@@ -124,15 +124,18 @@ void Server::makeParserRequests()
 {
     for (const auto &key : LastTRADENOs.keys())
     {
+        if (key != "GAZP") continue;
         QString QUrl_str    = QString("https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/")
                             + QString(key)
                             + QString("/trades.xml?TRADENO=")
-                            + QString::number(LastTRADENOs[key])
-                            + QString("&limit=")
-                            + QString(LIMITstr);
+                            + QString::number(LastTRADENOs[key]);
+                            //+ QString("&limit=")
+                            //+ QString(LIMITstr);
+
+        qDebug() << "LastTRADENO = " << LastTRADENOs[key];
 
         parser.fetchXml(QUrl(QUrl_str));
-        QThread::msleep(100);
+        QThread::msleep(1000);
     }
 }
 
@@ -140,9 +143,11 @@ void Server::insertInDB_slot()
 {
     //qDebug() << parser.bigInsertString;
     mtx.lock();
+
     requestQuery->exec(parser.bigInsertString);
     requestQuery->first();
-    LastTRADENOs[parser.LastSecurity_tmp] = parser.LastTradeno_tmp;
+    LastTRADENOs[parser.LastSecurity_tmp] = parser.LastTradeno_tmp+1;
+
     mtx.unlock();
 }
 
