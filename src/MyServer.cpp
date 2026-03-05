@@ -124,7 +124,6 @@ void Server::makeParserRequests()
 {
     for (const auto &key : LastTRADENOs.keys())
     {
-        if (key != "GAZP") continue;
         QString QUrl_str    = QString("https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/")
                             + QString(key)
                             + QString("/trades.xml?TRADENO=")
@@ -135,7 +134,7 @@ void Server::makeParserRequests()
         qDebug() << "LastTRADENO = " << LastTRADENOs[key];
 
         parser.fetchXml(QUrl(QUrl_str));
-        QThread::msleep(1000);
+        QThread::msleep(100);
     }
 }
 

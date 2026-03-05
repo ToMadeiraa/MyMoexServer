@@ -40,7 +40,8 @@ void XmlUrlParser::replyFinished(QNetworkReply *reply) {
 
             double PRICE_tmp = xml.attributes().at(4).value().toDouble();
             int QUANTITY_tmp = xml.attributes().at(5).value().toInt();
-            QString SYSTIME_tmp = xml.attributes().at(9).value().toString();
+
+            QString SYSTIME_tmp = xml.attributes().at(13).value().toString() + " " + xml.attributes().at(1).value().toString();
             QString BUYSELL_tmp = xml.attributes().at(10).value().toString();
             char BUYSELL_tmp_bool = (BUYSELL_tmp == "B") ? '1' : '0';
 

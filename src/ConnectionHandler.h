@@ -27,7 +27,6 @@ public:
     explicit ConnectionHandler(qintptr socketDescriptor, QObject *parent = nullptr);
     QTimer *timerSendData;
     QSqlQuery* requestQuery;
-    //QSqlDatabase* db;
     QMutex* mtx;
 
     QHash<QString, ushort> SecID_Numbers; //расшифровка secid по id
