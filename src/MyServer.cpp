@@ -59,9 +59,9 @@ void Server::startServer()
     db = QSqlDatabase::addDatabase("QPSQL");
     db.setHostName("localhost");
     db.setPort(5432);
-    db.setDatabaseName("testdb");
+    db.setDatabaseName("db_server");
     db.setUserName("postgres");
-    db.setPassword("1234");
+    db.setPassword("12345678");
 
     if (!db.open()) {
         qDebug() << "Ошибка подключения к базе данных:" << db.lastError().text();
@@ -94,7 +94,7 @@ void Server::startServer()
     //каждые 10c делаем парсинг
     timerSendRequest = new QTimer;
     connect(timerSendRequest, SIGNAL(timeout()), this, SLOT(makeParserRequests()));
-    timerSendRequest->start(10000);
+    timerSendRequest->start(5000);
 
     //коннектим сигнал вставки хмл в БД
     connect(&parser, SIGNAL(insertInDB_signal()), this, SLOT(insertInDB_slot()));
@@ -122,16 +122,39 @@ void Server::incomingConnection(qintptr socketDescriptor)
 
 void Server::makeParserRequests()
 {
+    // currentTradeNosVector.clear();
+    // for (const auto &key : LastTRADENOs.keys())
+    //     currentTradeNosVector.push_back(LastTRADENOs[key]);
+
+    // bool isAllLoaded = false;
+    // for (int i = 0; i < lastTradeNosVector.size(); ++i)
+    // {
+    //     if (lastTradeNosVector[i] != currentTradeNosVector[i])
+    //     {
+    //         isAllLoaded = false;
+    //         break;
+    //     }
+    //     isAllLoaded = true;
+    // }
+
+    // if (isAllLoaded == true)
+    // {
+    //     qDebug() << "All data is loaded!";
+    //     std::terminate();
+    // }
+    // else
+    // {
+    //     lastTradeNosVector = currentTradeNosVector;
+    // }
+
     for (const auto &key : LastTRADENOs.keys())
     {
-        QString QUrl_str    = QString("https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/")
-                            + QString(key)
-                            + QString("/trades.xml?TRADENO=")
-                            + QString::number(LastTRADENOs[key]);
-                            //+ QString("&limit=")
-                            //+ QString(LIMITstr);
+        QString QUrl_str = QString("https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/")
+                         + QString(key)
+                         + QString("/trades.xml?TRADENO=")
+                         + QString::number(LastTRADENOs[key]);
 
-        qDebug() << "LastTRADENO = " << LastTRADENOs[key];
+        qDebug() << key <<  " LastTRADENO = " << LastTRADENOs[key];
 
         parser.fetchXml(QUrl(QUrl_str));
         QThread::msleep(100);

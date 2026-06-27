@@ -36,6 +36,8 @@ public:
     QHash<QString, long long int> LastTRADENOs;
     QMap<QString, ushort> SecID_Numbers;
     QMutex mtx;
+    QVector<long long int> lastTradeNosVector;
+    QVector<long long int> currentTradeNosVector;
 
 protected:
     void incomingConnection(qintptr socketDescriptor) override;

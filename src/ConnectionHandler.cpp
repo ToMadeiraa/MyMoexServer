@@ -75,7 +75,6 @@ void ConnectionHandler::readyRead()
         clientLastTradeno[secid_tmp] = lastTradeno_tmp;
     }
 
-
     sendData_slot();
 }
 
@@ -157,7 +156,7 @@ void ConnectionHandler::sendData_slot()
                 ds << price_tmp;
                 ds << quantity_tmp;
 
-                QDateTime dt_now = QDateTime::fromString(systime_tmp, "yyyy-MM-ddTHH:mm:ss.zzz");
+                QDateTime dt_now = QDateTime::fromString(systime_tmp, "yyyy-MM-ddTHH:mm:ss.zzzZ");
                 uint secondsFrom2000 = dt_2000.secsTo(dt_now);
                 ds << secondsFrom2000;
             } while (requestQuery->next());
